@@ -1,9 +1,10 @@
-from intermediate import Users
-from intermediate import GrandPrix
-from base import Order
-from base import InvalidLengthException
-from base import InvalidPositionException
 from datetime import datetime
+
+from User import User
+from GrandPrix import GrandPrix
+from Order import Order
+from Errors import InvalidLengthException
+from Errors import InvalidPositionException
 
 
 class Server:

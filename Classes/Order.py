@@ -1,14 +1,8 @@
 from datetime import datetime
 from datetime import timedelta
-import random
 
-
-class InvalidLengthException(Exception):
-    pass
-
-
-class InvalidPositionException(Exception):
-    pass
+from Errors import InvalidPositionException
+from Errors import InvalidLengthException
 
 
 class Order:
@@ -48,30 +42,3 @@ class Order:
 
     def modifiedTime_str(self):
         return (self.last_modified + timedelta(hours=5.5)).strftime("%d-%b-%y, %a, %H:%M")
-
-
-class Countback:
-    def __init__(self):
-        self.__countback_dict = {
-            1: 0,
-            2: 0,
-            3: 0
-        }
-
-    def increment(self, pos):
-        if (pos > 0) and (pos < 4):
-            self.__countback_dict[pos] = self.__countback_dict[pos] + 1
-        else:
-            raise InvalidPositionException
-
-    def getCount(self, pos):
-        return self.__countback_dict[pos]
-
-    def __gt__(self, other):
-        for pos in [1, 2, 3]:
-            if self.__countback_dict[pos] != other.__countback_dict[pos]:
-                return self.__countback_dict[pos] > other.__countback_dict[pos]
-        return random.choice([True, False])
-
-    def __str__(self):
-        return str(", ".join(str(count) for count in self.__countback_dict.values()))
