@@ -26,5 +26,11 @@ class Countback:
                 return self.__countback_dict[pos] > other.__countback_dict[pos]
         return random.choice([True, False])
 
+    def __lt__(self, other):
+        for pos in [1, 2, 3]:
+            if self.__countback_dict[pos] != other.__countback_dict[pos]:
+                return self.__countback_dict[pos] < other.__countback_dict[pos]
+        return random.choice([True, False])
+
     def __str__(self):
         return str(", ".join(str(count) for count in self.__countback_dict.values()))

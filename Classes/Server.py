@@ -1,4 +1,5 @@
 from datetime import datetime
+from copy import deepcopy
 
 from User import User
 from GrandPrix import GrandPrix
@@ -45,6 +46,32 @@ class Server:
                 else:
                     return "A Tag Exception occured."
         return "You don't seem to be registered in the server."
+
+    def updateResults(self, gridResultList, raceResultList):
+        try:
+            self.currGrandPrix.gridResult.updateFromList(gridResultList)
+            self.currGrandPrix.raceResult.updateFromList(raceResultList)
+        except InvalidLengthException:
+            return "Something went wrong while updating results."
+
+    def updateGrandPrix(self, name, location, round, qualiTimeStr, raceTimeStr):
+        self.prevGrandPrix = deepcopy(self.currGrandPrix)
+        self.currGrandPrix = deepcopy(self.nextGrandPrix)
+        self.nextGrandPrix.name = name
+        self.nextGrandPrix.location = location
+        self.nextGrandPrix.round = round
+        # change str to list
+        self.nextGrandPrix.qualiTime = datetime(qualiTimeStr[0],
+                                                qualiTimeStr[1],
+                                                qualiTimeStr[2])
+        self.nextGrandPrix.raceTime = datetime(raceTimeStr[0],
+                                               raceTimeStr[1],
+                                               raceTimeStr[2])
+
+    def updatePoints(self):
+        for user in self.players:
+            user.updatePoints(self.currGrandPrix.gridResult,
+                              self.currGrandPrix.raceResult)
 
     self
      order = Order()

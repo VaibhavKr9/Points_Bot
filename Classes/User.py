@@ -9,6 +9,7 @@ class User:
         self.name = ""
         self.mention = ""
         self.points = 0
+        self.weekPoints = 0
         self.weekWins = 0
         self.countback = Countback()
         self.qualiPrediction = Order()
@@ -34,23 +35,34 @@ class User:
             ": " + str(self.racePrediction)
         return msg
 
-    def updatePoints(self, qualiResult, raceResult):
+    def updatePoints(self, gridResult, raceResult):
+        self.weekPoints = 0
         for pos in range(start=1, stop=4):
-            if qualiResult.driver(pos) == self.qualiPrediction.driver(pos):
-                self.points = self.points + 1
-            if qualiResult.driver(pos) in self.qualiPrediction.orderList():
-                self.points = self.points + 1
+            if gridResult.driver(pos) == self.qualiPrediction.driver(pos):
+                self.weekPoints = self.weekPoints + 1
+            if gridResult.driver(pos) in self.qualiPrediction.orderList():
+                self.weekPoints = self.weekPoints + 1
             if raceResult.driver(pos) == self.racePrediction.driver(pos):
-                self.points = self.points + 1
+                self.weekPoints = self.weekPoints + 1
                 self.countback.increment(pos)
             if raceResult.driver(pos) in self.racePrediction.orderList():
-                self.points = self.points + 1
+                self.weekPoints = self.weekPoints + 1
+        self.points = self.points + self.weekPoints
 
     def __gt__(self, other):
         if self.points != other.points:
             return self.points > other.points
         else:
             return self.countback > other.countback
+
+    def __lt__(self, other):
+        if self.points != other.points:
+            return self.points < other.points
+        else:
+            return self.countback < other.countback
+
+    def __eq__(self, other):
+        return False
 
     def updatePosition(self, newPos):
         if newPos < 1:
