@@ -42,7 +42,7 @@ class Server:
                 if tag == "race":
                     return user.updateRacePred(order)
                 elif tag == "grid":
-                    return user.updateQualiPred(order)
+                    return user.updateGridPred(order)
                 else:
                     return "A Tag Exception occured."
         return "You don't seem to be registered in the server."
@@ -68,17 +68,40 @@ class Server:
                                                raceTimeStr[1],
                                                raceTimeStr[2])
 
-    def updatePoints(self):
+    def updateStandings(self):
+        newPositionList = []
+
         for user in self.players:
             user.updatePoints(self.currGrandPrix.gridResult,
                               self.currGrandPrix.raceResult)
 
-    self
-     order = Order()
-      for pos, driver in enumerate(RacePred, start=1):
-           try:
-                order.update(pos, driver)
-            except InvalidPositionException:
-                return "Something went wrong while updating predictions."
-            except InvalidLengthException:
-                return "Driver name must be a three-letter abbreviation."
+            insertedInListFlag = False
+            if newPositionList:
+                for pos, newPosUser in enumerate(newPositionList):
+                    if user > newPosUser:
+                        newPositionList.insert(pos,user)
+                        insertedInListFlag = True
+                        break
+            if not insertedInListFlag:
+                newPositionList.append(user)
+        
+        userBackupList = deepcopy(self.players)
+        try:
+            for user in self.players:
+                user.updatePosition(newPositionList.index(user) + 1)
+        except InvalidPositionException:
+            self.players = userBackupList
+            return "A Position Exception occured."
+
+    def currentSummary(self, round):
+        message = "The"
+        message += self.currGrandPrix.name + " (Round " + str(self.currGrandPrix.round) + ") has over and here are the results:\n"
+        message += "Grid: " + str(self.currGrandPrix.gridResult) + "\n"
+        message += "Race: " + str(self.currGrandPrix.raceResult) + "\n"
+
+        message += "\nGrid predictions:\n"
+        message += "\n".join((str(user) + ": " + str(user.gridPredictions)) for user in self.players)
+        message += "\nRace Predictions:\n"
+        message += "\n".join((str(user) + ": " + str(user.racePredictions)) for user in self.players)
+
+        

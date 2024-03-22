@@ -12,7 +12,7 @@ class User:
         self.weekPoints = 0
         self.weekWins = 0
         self.countback = Countback()
-        self.qualiPrediction = Order()
+        self.gridPrediction = Order()
         self.racePrediction = Order()
         self.currPosition = 0
         self.prevPosition = 0
@@ -23,10 +23,10 @@ class User:
     def incrementWins(self):
         self.weekWins = self.weekWins + 1
 
-    def updateQualiPred(self, QualiPred):
-        self.qualiPrediction.updateFromOrder(QualiPred)
+    def updateGridPred(self, QualiPred):
+        self.gridPrediction.updateFromOrder(QualiPred)
         msg = "✅ Quali prediction by" + self.name + \
-            ": " + str(self.qualiPrediction)
+            ": " + str(self.gridPrediction)
         return msg
 
     def updateRacePred(self, RacePred):
@@ -38,9 +38,9 @@ class User:
     def updatePoints(self, gridResult, raceResult):
         self.weekPoints = 0
         for pos in range(start=1, stop=4):
-            if gridResult.driver(pos) == self.qualiPrediction.driver(pos):
+            if gridResult.driver(pos) == self.gridPrediction.driver(pos):
                 self.weekPoints = self.weekPoints + 1
-            if gridResult.driver(pos) in self.qualiPrediction.orderList():
+            if gridResult.driver(pos) in self.gridPrediction.orderList():
                 self.weekPoints = self.weekPoints + 1
             if raceResult.driver(pos) == self.racePrediction.driver(pos):
                 self.weekPoints = self.weekPoints + 1
@@ -70,3 +70,11 @@ class User:
         else:
             self.prevPosition = self.currPosition
             self.currPosition = newPos
+
+    def __deepcopy__(self, memo):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for k, v in self.__dict__.items():
+            setattr(result, k, deepcopy(v, memo))
+        return result
