@@ -6,13 +6,13 @@ from Order import Order
 
 class GrandPrix:
     def __init__(self):
-        self.name = ""
-        self.location = ""
-        self.round = 0
-        self.qualiTime = datetime.now()
-        self.raceTime = datetime.now()
-        self.gridResult = Order()
-        self.raceResult = Order()
+        self.name: str = ""
+        self.location: str = ""
+        self.round: int = 0
+        self.qualiTime: datetime = datetime.now()
+        self.raceTime: datetime = datetime.now()
+        self.gridResult: Order = Order()
+        self.raceResult: Order = Order()
 
     def __str__(self):
         return self.name
@@ -25,14 +25,14 @@ class GrandPrix:
             setattr(result, k, deepcopy(v, memo))
         return result
 
-    def qualiTime_str(self):
+    def qualiTime_str(self) -> str:
         return self.qualiTime.strftime("%a, %H:%M")
 
-    def raceTime_str(self):
+    def raceTime_str(self) -> str:
         return self.raceTime.strftime("%a, %H:%M")
 
-    def raceDateTime_str(self):
+    def raceDateTime_str(self) -> str:
         return self.raceTime.strftime("%d %B, %H:%M")
 
-    def incrementRound(self):
+    def incrementRound(self) -> None:
         self.round = self.round + 1

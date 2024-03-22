@@ -10,26 +10,26 @@ from Errors import InvalidPositionException
 
 class Server:
     def __init__(self):
-        self.guild = 0
-        self.generalChannel = 0
-        self.updatesChannel = 0
-        self.players = []
-        self.prevGrandPrix = GrandPrix()
-        self.currGrandPrix = GrandPrix()
-        self.nextGrandPrix = GrandPrix()
+        self.guild: int = 0
+        self.generalChannel: int = 0
+        self.updatesChannel: int = 0
+        self.players: list[User] = []
+        self.prevGrandPrix: GrandPrix = GrandPrix()
+        self.currGrandPrix: GrandPrix = GrandPrix()
+        self.nextGrandPrix: GrandPrix = GrandPrix()
 
-    def newUser(self, name, mention):
-        user = User()
+    def newUser(self, name: str, mention: str) -> None:
+        user: User = User()
         user.name = name
         user.mention = mention
         self.players.append(user)
 
-    def updatePredictions(self, tag, userName, predList):
+    def updatePredictions(self, tag: str, userName: str, predList: list[str]) -> str:
         if tag == "grid" and datetime.now() > self.currGrandPrix.qualiTime:
             return "❌ " + str(currGrandPrix) + " grid predictions are now closed."
         if tag == "race" and datetime.now() > self.currGrandPrix.raceTime:
             return "❌ " + str(currGrandPrix) + " race predictions are now closed."
-        order = Order()
+        order: Order = Order()
         try:
             for pos in range(3):
                 order.update(pos, predList[pos])
@@ -47,14 +47,14 @@ class Server:
                     return "A Tag Exception occured."
         return "You don't seem to be registered in the server."
 
-    def updateResults(self, gridResultList, raceResultList):
+    def updateResults(self, gridResult: list[str], raceResult: list[str]) -> str:
         try:
-            self.currGrandPrix.gridResult.updateFromList(gridResultList)
-            self.currGrandPrix.raceResult.updateFromList(raceResultList)
+            self.currGrandPrix.gridResult.updateFromList(gridResult)
+            self.currGrandPrix.raceResult.updateFromList(raceResult)
         except InvalidLengthException:
             return "Something went wrong while updating results."
 
-    def updateGrandPrix(self, name, location, round, qualiTimeStr, raceTimeStr):
+    def updateGrandPrix(self, name: str, location: str, round: int, qualiTimeStr: str, raceTimeStr:str) -> None:
         self.prevGrandPrix = deepcopy(self.currGrandPrix)
         self.currGrandPrix = deepcopy(self.nextGrandPrix)
         self.nextGrandPrix.name = name
@@ -69,7 +69,7 @@ class Server:
                                                raceTimeStr[2])
 
     def updateStandings(self):
-        newPositionList = []
+        newPositionList: list[User] = []
 
         for user in self.players:
             user.updatePoints(self.currGrandPrix.gridResult,
@@ -85,7 +85,7 @@ class Server:
             if not insertedInListFlag:
                 newPositionList.append(user)
         
-        userBackupList = deepcopy(self.players)
+        userBackupList: list[User] = deepcopy(self.players)
         try:
             for user in self.players:
                 user.updatePosition(newPositionList.index(user) + 1)
@@ -93,8 +93,8 @@ class Server:
             self.players = userBackupList
             return "A Position Exception occured."
 
-    def currentSummary(self, round):
-        message = "The"
+    def currentSummary(self, round: int) -> str:
+        message: str = "The"
         message += self.currGrandPrix.name + " (Round " + str(self.currGrandPrix.round) + ") has over and here are the results:\n"
         message += "Grid: " + str(self.currGrandPrix.gridResult) + "\n"
         message += "Race: " + str(self.currGrandPrix.raceResult) + "\n"
@@ -104,4 +104,3 @@ class Server:
         message += "\nRace Predictions:\n"
         message += "\n".join((str(user) + ": " + str(user.racePredictions)) for user in self.players)
 
-        
