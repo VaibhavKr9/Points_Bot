@@ -95,7 +95,7 @@ class Server:
 
     def currentSummary(self, round: int) -> str:
         message: str = "The"
-        message += self.currGrandPrix.name + " (Round " + str(self.currGrandPrix.round) + ") has over and here are the results:\n"
+        message += self.currGrandPrix.name + " (Round " + str(self.currGrandPrix.round) + ") is over and here are the results:\n"
         message += "Grid: " + str(self.currGrandPrix.gridResult) + "\n"
         message += "Race: " + str(self.currGrandPrix.raceResult) + "\n"
 
