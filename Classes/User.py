@@ -8,10 +8,11 @@ class User:
     def __init__(self):
         self.name: str = ""
         self.mention: str = ""
-        self.points: int = 0
-        self.weekPoints: int = 0
-        self.weekWins: int = 0
-        self.countback: Countback = Countback()
+        self.__points: int = 0
+        self.__weekPoints: int = 0
+        self.__weekWins: int = 0
+        self.__countback: Countback = Countback()
+        self.__weekCountback: Countback = Countback()
         self.gridPrediction: Order = Order()
         self.racePrediction: Order = Order()
         self.currPosition: int = 0
@@ -21,7 +22,7 @@ class User:
         return self.name
 
     def incrementWins(self) -> None:
-        self.weekWins = self.weekWins + 1
+        self.__weekWins = self.__weekWins + 1
 
     def updateGridPred(self, QualiPred: Order) -> str:
         self.gridPrediction.updateFromOrder(QualiPred)
@@ -36,30 +37,32 @@ class User:
         return msg
 
     def updatePoints(self, gridResult: Order, raceResult: Order) -> None:
-        self.weekPoints = 0
+        self.__weekPoints = 0
+        self.__weekCountback.clear()
         for pos in range(start=1, stop=4):
             if gridResult.driver(pos) == self.gridPrediction.driver(pos):
-                self.weekPoints = self.weekPoints + 1
+                self.__weekPoints = self.__weekPoints + 1
             if gridResult.driver(pos) in self.gridPrediction.orderList():
-                self.weekPoints = self.weekPoints + 1
+                self.__weekPoints = self.__weekPoints + 1
             if raceResult.driver(pos) == self.racePrediction.driver(pos):
-                self.weekPoints = self.weekPoints + 1
-                self.countback.increment(pos)
+                self.__weekPoints = self.__weekPoints + 1
+                self.__weekCountback.increment(pos)
+                self.__countback.increment(pos)
             if raceResult.driver(pos) in self.racePrediction.orderList():
-                self.weekPoints = self.weekPoints + 1
-        self.points = self.points + self.weekPoints
+                self.__weekPoints = self.__weekPoints + 1
+        self.__points = self.__points + self.__weekPoints
 
     def __gt__(self, other) -> bool:
-        if self.points != other.points:
-            return self.points > other.points
+        if self.__points != other.__points:
+            return self.__points > other.__points
         else:
-            return self.countback > other.countback
+            return self.__countback > other.__countback
 
     def __lt__(self, other) -> bool:
-        if self.points != other.points:
-            return self.points < other.points
+        if self.__points != other.__points:
+            return self.__points < other.__points
         else:
-            return self.countback < other.countback
+            return self.__countback < other.__countback
 
     def __eq__(self, other) -> bool:
         return False
