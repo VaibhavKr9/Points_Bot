@@ -92,7 +92,7 @@ class User:
         """
 
         self.gridPrediction.updateFromOrder(QualiPred)
-        msg = "✅ Quali prediction by" + self.name + \
+        msg = "✅ Grid prediction by" + self.name + \
             ": " + str(self.gridPrediction)
         return msg
 
@@ -167,6 +167,18 @@ class User:
 
     def __eq__(self, other) -> bool:
         return False
+    
+    def greaterWeekendThan(self, other) -> bool:
+        if self.__weekPoints != other.__weekPoints:
+            return self.__weekPoints > other.__weekPoints
+        else:
+            return self.__weekCountback > other.__weekCountback
+        
+    def equalWeekendTo(self, other) -> bool:
+        if self.__weekPoints != other.__weekPoints:
+            return False
+        else:
+            return self.__weekCountback == other.__weekCountback
 
     def updatePosition(self, newPos: int) -> None:
         """
@@ -189,6 +201,20 @@ class User:
         else:
             self.weekPosition = weekPos
 
+    def manualUpdatePoints(self, newPoints : int) -> str:
+        if newPoints >= 0:
+            self.__points = newPoints
+            return "Points updated for " + self.name + " to " + str(self.__points) + "."
+        return "Enter valid points input."
+
+    def resetPredictions(self) -> None:
+        """
+        Resets the predictions of the user for a new Grand Prix weekend.
+        """
+
+        self.gridPrediction = Order()
+        self.racePrediction = Order()
+
     def weekSummary(self) -> str:
         sum: str = ""
         sum += ": >".format(str(self.weekPosition)) + " | "
@@ -210,6 +236,12 @@ class User:
         sum += str(self.__countback)
 
         return sum
+    
+    def getWeekendPoints(self) -> int:
+        return self.__weekPoints
+    
+    def getTotalPoints(self) -> int:
+        return self.__points
 
     def __deepcopy__(self, memo):
         cls = self.__class__

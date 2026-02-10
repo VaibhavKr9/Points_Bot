@@ -1,7 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from copy import deepcopy
 
-from src.order_class.Order import Order
+from order_class.Order import Order
 from errors_class.Errors import InvalidTagException
 
 
@@ -31,6 +31,7 @@ class GrandPrix:
         self.name: str = ""
         self.location: str = ""
         self.round: int = 0
+        self.startTime: datetime = datetime.now()
         self.qualiTime: datetime = datetime.now()
         self.raceTime: datetime = datetime.now()
         self.gridResult: Order = Order()
@@ -59,13 +60,13 @@ class GrandPrix:
 
     #TODO: IST offset
     def qualiTime_str(self) -> str:
-        return self.qualiTime.strftime("%a, %H:%M")
+        return (self.qualiTime + timedelta(hours=5, minutes=30)).strftime("%a, %H:%M")
 
     def raceTime_str(self) -> str:
-        return self.raceTime.strftime("%a, %H:%M")
+        return (self.raceTime + timedelta(hours=5, minutes=30)).strftime("%a, %H:%M")
 
     def raceDateTime_str(self) -> str:
-        return self.raceTime.strftime("%d %B, %H:%M")
+        return (self.raceTime + timedelta(hours=5, minutes=30)).strftime("%d %B, %H:%M")
 
     def incrementRound(self) -> None:
         self.round = self.round + 1

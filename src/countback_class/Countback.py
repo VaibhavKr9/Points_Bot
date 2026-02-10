@@ -86,6 +86,12 @@ class Countback:
             if self.__countback_dict[pos] != other.__countback_dict[pos]:
                 return self.__countback_dict[pos] < other.__countback_dict[pos]
         return random.choice([True, False])
+    
+    def __eq__(self, other) -> bool:
+        for pos in [1, 2, 3]:
+            if self.__countback_dict[pos] != other.__countback_dict[pos]:
+                return False
+        return True
 
     def __str__(self) -> str:
         """

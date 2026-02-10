@@ -2,8 +2,8 @@ from datetime import datetime
 from datetime import timedelta
 from copy import deepcopy
 
-from src.errors_class.Errors import InvalidPositionException
-from src.errors_class.Errors import InvalidLengthException
+from errors_class.Errors import InvalidPositionException
+from errors_class.Errors import InvalidLengthException
 
 
 class Order:
@@ -87,12 +87,12 @@ class Order:
         else:
             raise InvalidPositionException
 
-    def updateFromOrder(self, order: Order) -> None:
+    def updateFromOrder(self, order: 'Order') -> None:
         """
         Updates all values from another Order object
         """
 
-        self.__orderDict = order.__orderDict
+        self.__orderDict = deepcopy(order.__orderDict)
         self.lastModified = datetime.now()
 
     def updateFromList(self, orderList: list[str]):
