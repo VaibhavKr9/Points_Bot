@@ -18,11 +18,8 @@ class   DiscordClient(discord.Client):
     def __init__(self):
         self.__logger : logging.Logger = logging.getLogger('DiscordClient')
         self.__logger.setLevel(logging.DEBUG)
-        self.intents.messages = True
-        self.intents.guilds = True
-        self.intents.members = True
-        self.intents.message_content = True
-        super().__init__(intents= self.intents)
+        self.__intents = discord.Intents(value = 0, messages = True, guilds = True, members = True, message_content = True)
+        super().__init__(intents= self.__intents)
         self.__pickleFilePath : str = "clientData.pkl"
         self.__guildDict : dict[int, Server] = {}
         self.__guildUpdateStatusDict : dict[int, bool] = {}
@@ -32,7 +29,7 @@ class   DiscordClient(discord.Client):
         self.nextGrandPrix : GrandPrix = GrandPrix()
         self.totalRounds : int = 0
 
-    def startClient(self, authKey : str, pickleFilePath : str, logPath : StrPath = "client.log") -> None:
+    def startClient(self, authKey : str, pickleFilePath : str, logPath : str = "client.log") -> None:
         try:
             self.__logHandler : logging.Handler = logging.FileHandler(filename=logPath, encoding="utf-8")
             self.__logHandler.formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
@@ -51,14 +48,17 @@ class   DiscordClient(discord.Client):
                     self.totalRounds                = clientInfo["totalRounds"]
                     self.__adminOverrideActive      = clientInfo["adminOvrdAct"]
                     self.__guildUpdateStatusDict    = clientInfo["gldUpdateSts"]
-                    for guildID in clientInfo["guildIDList"].keys():
-                        guild = Server()
-                        guild.loadData(guildID)
+                    for guildID in clientInfo["guildIDList"]:
+                        guild = Server(guildID=guildID)
                         self.__guildDict[guildID] = guild
                     self.__isActive = True
                     self.__logger.info("Client is active.")
             else:
                 self.__pickleFilePath = pickleFilePath
+                for guild in self.guilds:
+                    server : Server = Server(guild.name, guild.id)
+                    self.__guildDict[guild.id] = server
+                    self.__guildUpdateStatusDict[guild.id] = False
                 self.__saveData()
                 self.__isActive = True
                 self.__logger.warning("Pickle file not found, client started with initailized data.")
@@ -69,7 +69,7 @@ class   DiscordClient(discord.Client):
     def __saveData(self) -> None:
         if self.__isActive:
             with open(self.__pickleFilePath, "wb+") as pickleFile:
-                clientInfo = {"guildIDList"  : self.__guildDict.keys(),
+                clientInfo = {"guildIDList"  : list(self.__guildDict.keys()),
                               "adminOvrdAct" : self.__adminOverrideActive,
                               "gldUpdateSts" : self.__guildUpdateStatusDict,
                               "currGrandPrix": self.currGrandPrix,
@@ -345,9 +345,7 @@ class   DiscordClient(discord.Client):
 
     async def on_guild_join(self, guild : discord.Guild):
         if guild.id not in self.__guildDict.keys():
-            server : Server = Server()
-            server.name = guild.name
-            server.guildID = guild.id
+            server : Server = Server(guild.name, guild.id)
             self.__guildDict[guild.id] = server
             self.__guildUpdateStatusDict[guild.id] = False
             self.__saveData()

@@ -6,7 +6,7 @@ import asyncio
 
 from grand_prix_class.GrandPrix import GrandPrix
 from client_class.Client import DiscordClient
-from src.f1data_class.FastF1 import FastF1Data
+from f1data_class.FastF1 import FastF1Data
 
 load_dotenv()
 
@@ -85,14 +85,10 @@ def enterSchedulingCycle():
             else:
                 checkGrandPrixResultsTask()
 
-if __name__ == "__main__":
-    if os.getenv("DISCORD_BOT_TOKEN") is None:
-        print("ERROR: DISCORD_BOT_TOKEN not found in environment variables.")
-        exit(1)
-    else:
-        botAuthKey = os.getenv("DISCORD_BOT_TOKEN")
-        pointsBotClient.startClient(botAuthKey, "data/pickles/client.pickle")
-        enterSchedulingCycle()
+def startBot():
+    botAuthKey = os.getenv("DISCORD_BOT_TOKEN")
+    pointsBotClient.startClient(botAuthKey, f"{os.getenv("PICKLE_DIR")}/client.pickle", f"{os.getenv("LOG_DIR")}/client.log")
+    enterSchedulingCycle()
 
 
 

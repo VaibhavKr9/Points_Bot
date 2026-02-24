@@ -1,10 +1,10 @@
 from copy import deepcopy
 from math import log10
 
-from src.order_class.Order import Order
-from src.countback_class.Countback import Countback
-from src.errors_class.Errors import InvalidLengthException
-from src.errors_class.Errors import InvalidPositionException
+from order_class.Order import Order
+from countback_class.Countback import Countback
+from errors_class.Errors import InvalidLengthException
+from errors_class.Errors import InvalidPositionException
 
 
 class User:

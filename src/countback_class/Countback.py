@@ -1,6 +1,6 @@
 import random
 
-from src.errors_class.Errors import InvalidPositionException
+from errors_class.Errors import InvalidPositionException
 
 
 class Countback:

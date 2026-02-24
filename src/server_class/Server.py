@@ -1,14 +1,15 @@
 from datetime import datetime
 from copy import deepcopy
 from enum import Enum
+import os
 import pickle
 import logging
 
-from ..user_class.User import User
-from ..grand_prix_class.GrandPrix import GrandPrix
-from ..order_class.Order import Order
-from ..errors_class.Errors import InvalidLengthException
-from ..errors_class.Errors import InvalidPositionException
+from user_class.User import User
+from grand_prix_class.GrandPrix import GrandPrix
+from order_class.Order import Order
+from errors_class.Errors import InvalidLengthException
+from errors_class.Errors import InvalidPositionException
 
 class OverrideState(Enum):
     NO_OVERRIDE = 1
@@ -18,10 +19,11 @@ class OverrideState(Enum):
 class Server:
     def __init__(self, name : str = "", guildID : int = 0):
         self.__logger = logging.getLogger(str(guildID))
-        self.__fileHandler = logging.FileHandler(f"logs/{guildID}.log")
+        self.__fileHandler = logging.FileHandler(f"{os.getenv("LOG_DIR")}/{guildID}.log")
         self.__fileHandler.formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
         self.__logger.setLevel(logging.DEBUG)
         self.__logger.addHandler(self.__fileHandler)
+        self.__pickleFilePath = f"{os.getenv("PICKLE_DIR")}/{guildID}.pickle"
 
         self.guildID: int = guildID
         self.name: str = name
@@ -34,6 +36,9 @@ class Server:
         self.__weekendPosList : list[int] = []
         self.__weekendWinnerList : list[int] = []
         self.__ChampionshipPosList : list[int] = []
+
+        if os.path.isfile(self.__pickleFilePath):
+            self.__loadData()
 
     def newUser(self, id: int, name: str, mention: str) -> bool:
         if id not in self.__playerDict.keys():
@@ -146,11 +151,11 @@ class Server:
             return True
         
         except InvalidPositionException:
-            self.__loadData(self.guildID)
+            self.__loadData()
             self.__logger.error(f"Server: {self.name} - Invalid position exception occured during standings update")
             return False
         except Exception as exception:
-            self.__loadData(self.guildID)
+            self.__loadData()
             self.__logger.error(f"Server: {self.name} - Exception occured during standings update: {str(exception)}")
             return False
 
@@ -209,20 +214,20 @@ class Server:
             message += "\n**Our " + str(datetime.now().year) + " Champion:** 👑" + self.__playerDict[self.__ChampionshipPosList[0]].mention + "\n"
             message += "Congratulations!!\n"
 
-    def __loadData(self, guildID: int) -> None:
+    def __loadData(self) -> None:
         try:
-            with open("pickles/" + str(guildID) + ".pickle", "rb") as pickleFile:
+            with open(self.__pickleFilePath, "rb") as pickleFile:
                 self = pickle.load(pickleFile)
-                self.__logger.info("Server data loaded from pickle")
+                self.__logger.info(f"Server: {self.name} - Server data loaded from pickle")
         except Exception as exception:
             self.__logger.error(f"Server: {self.name} - Server load from pickle failed due to exception: {str(exception)}")
             raise exception
         
     def __saveData(self) -> None:
         try:
-            with open("pickles/" + str(self.guildID) + ".pickle", "wb+") as pickleFile:
+            with open(self.__pickleFilePath, "wb+") as pickleFile:
                 pickle.dump(self, pickleFile, pickle.HIGHEST_PROTOCOL)
-                self.__logger.info("Server data saved to pickle")
+                self.__logger.info(f"Server: {self.name} - Server data saved to pickle")
         except Exception as exception:
             self.__logger.error(f"Server: {self.name} - Server save to pickle failed due to exception: {str(exception)}")
             raise exception

@@ -1,6 +1,7 @@
 import fastf1
 from datetime import datetime
 from datetime import timedelta
+import os
 import enum
 from grand_prix_class.GrandPrix import GrandPrix
 
@@ -16,7 +17,7 @@ class RoundStatus(enum.Enum):
 
 class FastF1Data:
     def __init__(self):
-        fastf1.Cache.enable_cache(fastf1.Cache._get_default_cache_path(), force_renew=True)
+        fastf1.Cache.enable_cache(f"{os.getenv("CACHE_DIR")}", force_renew=True)
         self.__year = datetime.now().year
         self.__round = 1
         self.__seasonStatus = SeasonStatus.NOT_STARTED
