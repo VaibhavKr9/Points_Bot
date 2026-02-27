@@ -2,8 +2,8 @@ from datetime import datetime
 from datetime import timedelta
 from copy import deepcopy
 
-from errors_class.Errors import InvalidPositionException
-from errors_class.Errors import InvalidLengthException
+from src.errors_class.Errors import InvalidPositionException
+from src.errors_class.Errors import InvalidLengthException
 
 
 class Order:

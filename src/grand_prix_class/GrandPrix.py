@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta
 from copy import deepcopy
 
-from order_class.Order import Order
-from errors_class.Errors import InvalidTagException
+from src.order_class.Order import Order
+from src.errors_class.Errors import InvalidTagException
 
 
 class GrandPrix:

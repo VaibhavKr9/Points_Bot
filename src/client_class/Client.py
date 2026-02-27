@@ -4,10 +4,10 @@ from os import path
 import pickle
 from datetime import datetime
 from copy import deepcopy
-from server_class.Server import Server
-from server_class.Server import OverrideState
-from grand_prix_class.GrandPrix import GrandPrix
-import errors_class.Errors as err
+from src.server_class.Server import Server
+from src.server_class.Server import OverrideState
+from src.grand_prix_class.GrandPrix import GrandPrix
+import src.errors_class.Errors as err
 
 USER_COMMANDS = ["!predict", "!add me", "!remove me"]
 ADMIN_COMMANDS = ["!change", "!add", "!remove", "!open", "!close", "!auto", "!admin channel", "!updates channel", "!disable passive", "!enable passive", "!pause", "!resume"]
@@ -34,35 +34,11 @@ class   DiscordClient(discord.Client):
             self.__logHandler : logging.Handler = logging.FileHandler(filename=logPath, encoding="utf-8")
             self.__logHandler.formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
             self.__logger.addHandler(self.__logHandler)
+            self.__pickleFilePath = pickleFilePath
             self.__logger.info("Starting Discord Client...")
             self.run(token= authKey, reconnect= True, log_handler= self.__logHandler)
+            self.__logger.debug("discord.Client.run method returned")
             #await self.wait_until_ready()
-
-            if path.isfile(pickleFilePath):
-                self.__pickleFilePath = pickleFilePath
-                with open(pickleFilePath, "rb") as pickleFile:
-                    self.__logger.info("Pickle file found, loading saved data...")
-                    clientInfo = pickle.load(pickleFile)
-                    self.currGrandPrix              = clientInfo["currGrandPrix"]
-                    self.nextGrandPrix              = clientInfo["nextGrandPrix"]
-                    self.totalRounds                = clientInfo["totalRounds"]
-                    self.__adminOverrideActive      = clientInfo["adminOvrdAct"]
-                    self.__guildUpdateStatusDict    = clientInfo["gldUpdateSts"]
-                    for guildID in clientInfo["guildIDList"]:
-                        guild = Server(guildID=guildID)
-                        self.__guildDict[guildID] = guild
-                    self.__isActive = True
-                    self.__logger.info("Client is active.")
-            else:
-                self.__pickleFilePath = pickleFilePath
-                for guild in self.guilds:
-                    server : Server = Server(guild.name, guild.id)
-                    self.__guildDict[guild.id] = server
-                    self.__guildUpdateStatusDict[guild.id] = False
-                self.__saveData()
-                self.__isActive = True
-                self.__logger.warning("Pickle file not found, client started with initailized data.")
-
         except Exception as exception:
             print("Error in starting the client: ", exception)
 
@@ -117,7 +93,7 @@ class   DiscordClient(discord.Client):
 
     async def __userCommandHandler(self, message : discord.Message):
         if message.content.startswith("!predict"):
-            predList : list[str] = []
+            predList : list[str] = ['000', '000', '000']
             userFound : bool = False
             [com, tag, predList[0], predList[1], predList[2]] = message.content.lower().split(" ")
             try:
@@ -325,6 +301,36 @@ class   DiscordClient(discord.Client):
 
     async def on_ready(self):
         print("Whatever")
+        if path.isfile(self.__pickleFilePath):
+            with open(self.__pickleFilePath, "rb") as pickleFile:
+                self.__logger.info("Pickle file found, loading saved data...")
+                clientInfo = pickle.load(pickleFile)
+                self.currGrandPrix              = clientInfo["currGrandPrix"]
+                self.nextGrandPrix              = clientInfo["nextGrandPrix"]
+                self.totalRounds                = clientInfo["totalRounds"]
+                self.__adminOverrideActive      = clientInfo["adminOvrdAct"]
+                self.__guildUpdateStatusDict    = clientInfo["gldUpdateSts"]
+                for guildID in clientInfo["guildIDList"]:
+                    guild = Server(guildID=guildID)
+                    self.__guildDict[guildID] = guild
+                self.__isActive = True
+                self.__logger.info("Client is active.")
+        else:
+            for guild in self.guilds:
+                server : Server = Server(guild.name, guild.id)
+                self.__guildDict[guild.id] = server
+                self.__guildUpdateStatusDict[guild.id] = False
+            with open(self.__pickleFilePath, "wb+") as pickleFile:
+                clientInfo = {"guildIDList"  : list(self.__guildDict.keys()),
+                              "adminOvrdAct" : self.__adminOverrideActive,
+                              "gldUpdateSts" : self.__guildUpdateStatusDict,
+                              "currGrandPrix": self.currGrandPrix,
+                              "nextGrandPrix": self.nextGrandPrix,
+                              "totalRounds"  : self.totalRounds}
+                pickle.dump(clientInfo, pickleFile, pickle.HIGHEST_PROTOCOL)
+
+            self.__isActive = True
+            self.__logger.warning("Pickle file not found, client started with initailized data.")
 
     async def on_message(self, message : discord.Message):
         if message.author == self.user:

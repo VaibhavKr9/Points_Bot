@@ -5,11 +5,11 @@ import os
 import pickle
 import logging
 
-from user_class.User import User
-from grand_prix_class.GrandPrix import GrandPrix
-from order_class.Order import Order
-from errors_class.Errors import InvalidLengthException
-from errors_class.Errors import InvalidPositionException
+from src.user_class.User import User
+from src.grand_prix_class.GrandPrix import GrandPrix
+from src.order_class.Order import Order
+from src.errors_class.Errors import InvalidLengthException
+from src.errors_class.Errors import InvalidPositionException
 
 class OverrideState(Enum):
     NO_OVERRIDE = 1
@@ -39,6 +39,10 @@ class Server:
 
         if os.path.isfile(self.__pickleFilePath):
             self.__loadData()
+            self.__logger.info(f"Server: {self.name} - Client initializing server from pickle file.")
+        else:
+            self.__saveData()
+            self.__logger.info(f"Server: {self.name} - New server created.")
 
     def newUser(self, id: int, name: str, mention: str) -> bool:
         if id not in self.__playerDict.keys():
@@ -176,7 +180,7 @@ class Server:
         self.__saveData()
 
     def isUserRegistered(self, userId: int) -> bool:
-        return userId in self.__playerDict.keys()
+        return True if userId in self.__playerDict.keys() else False
 
     def weekendSummary(self) -> str:
         message : str = "**Predictions Summary:**\n"
@@ -217,7 +221,19 @@ class Server:
     def __loadData(self) -> None:
         try:
             with open(self.__pickleFilePath, "rb") as pickleFile:
-                self = pickle.load(pickleFile)
+                serverInfo = pickle.load(pickleFile)
+                self.guildID =                  serverInfo["guildID"]
+                self.name =                     serverInfo["name"]
+                self.adminChannel =             serverInfo["adminChannel"]
+                self.updatesChannel =           serverInfo["updatesChannel"]
+                self.adminOverrideFlag =        serverInfo["adminOverrideFlag"]
+                self.passivePredictionActive =  serverInfo["passivePredictionActive"]
+                self.autoUpdatesActive =        serverInfo["autoUpdatesActive"]
+                self.__playerDict =             serverInfo["playerDict"]
+                self.__weekendPosList =         serverInfo["weekendPosList"]
+                self.__weekendWinnerList =      serverInfo["weekendWinnerList"]
+                self.__ChampionshipPosList =    serverInfo["ChampionshipPosList"]
+
                 self.__logger.info(f"Server: {self.name} - Server data loaded from pickle")
         except Exception as exception:
             self.__logger.error(f"Server: {self.name} - Server load from pickle failed due to exception: {str(exception)}")
@@ -226,7 +242,20 @@ class Server:
     def __saveData(self) -> None:
         try:
             with open(self.__pickleFilePath, "wb+") as pickleFile:
-                pickle.dump(self, pickleFile, pickle.HIGHEST_PROTOCOL)
+                serverInfo = {
+                    "guildID" :                     self.guildID,
+                    "name" :                        self.name,
+                    "adminChannel" :                self.adminChannel,
+                    "updatesChannel" :              self.updatesChannel,
+                    "adminOverrideFlag" :           self.adminOverrideFlag,
+                    "passivePredictionActive" :     self.passivePredictionActive,
+                    "autoUpdatesActive" :           self.autoUpdatesActive,
+                    "playerDict" :                  self.__playerDict,
+                    "weekendPosList" :              self.__weekendPosList,
+                    "weekendWinnerList" :           self.__weekendWinnerList,
+                    "ChampionshipPosList" :         self.__ChampionshipPosList
+                }
+                pickle.dump(serverInfo, pickleFile, pickle.HIGHEST_PROTOCOL)
                 self.__logger.info(f"Server: {self.name} - Server data saved to pickle")
         except Exception as exception:
             self.__logger.error(f"Server: {self.name} - Server save to pickle failed due to exception: {str(exception)}")
