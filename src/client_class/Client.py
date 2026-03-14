@@ -143,7 +143,9 @@ class   DiscordClient(discord.Client):
                 [com, p, mention, newPoints] = message.content.lower().split(" ")
                 await message.channel.send(self.__guildDict[message.guild.id].manualUpdatePoints(int(newPoints), userMention = mention))
 
-            #TODO: change countback
+            if message.content.startswith("!change countback"):
+                [com, c, mention, pos1, pos2, pos3] = message.content.lower().split(" ")
+                await message.channel.send(self.__guildDict[message.guild.id].manualUpdateCountback([int(pos1), int(pos2), int(pos3)], userMention = mention))
 
             elif message.content.startswith("!add"):
                 [com, mention] = message.content.split(" ")

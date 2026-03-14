@@ -1,6 +1,6 @@
 import random
 
-from errors_class.Errors import InvalidPositionException
+from src.errors_class.Errors import InvalidPositionException
 
 
 class Countback:
@@ -60,6 +60,27 @@ class Countback:
         else:
             raise InvalidPositionException
 
+    def update(self, pos:int, newCount:int) -> None:
+        """
+        Updates the countback value of the position.
+        
+        Argumnents
+        ----------
+        pos: int
+            position to be updated
+        newCount: int
+            new countback value for the position
+        
+        Raises
+        -------
+        InvalidPositionException
+            To protect from keyError
+        """
+        if (pos > 0) and (pos < 4):
+            self.__countback_dict[pos] = newCount
+        else:
+            raise InvalidPositionException
+    
     def clear(self) -> None:
         """
         Resets all values of the countback to 0

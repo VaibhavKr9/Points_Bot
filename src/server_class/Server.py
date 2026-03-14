@@ -84,13 +84,15 @@ class Server:
 
         order: Order = Order()
         try:
-            for pos in range(3):
+            for pos in range(1,4):
                 order.update(pos, predList[pos])
         except InvalidLengthException:
             return "‼Enter three-letter abbreviations only."
         except InvalidPositionException:
             self.__logger.error(f"Server: {self.name} - Position exception during prediction update")
             return "A Position Exception occured."
+        except Exception as exp:
+            self.__logger.exception(f"Server: {self.name} - Exception during prediction update: {str(exp)}")
         message : str = ""
         for user in self.__playerDict.values():
             if userId != None and userId == user.id:
@@ -160,7 +162,7 @@ class Server:
             return False
         except Exception as exception:
             self.__loadData()
-            self.__logger.error(f"Server: {self.name} - Exception occured during standings update: {str(exception)}")
+            self.__logger.exception(f"Server: {self.name} - Exception occured during standings update: {str(exception)}")
             return False
 
     def manualUpdatePoints(self, newPoints : int, userName : str|None = None, userMention : str|None = None) -> str:
@@ -169,6 +171,15 @@ class Server:
                 return user.manualUpdatePoints(newPoints)
             elif userMention is not None and user.mention == userMention:
                 return user.manualUpdatePoints(newPoints)
+            
+        return "The user is not registered on the server."
+
+    def manualUpdateCountback(self, newCountback : list[int], userName : str|None = None, userMention : str|None = None) -> str:
+        for user in self.__playerDict.values():
+            if userName is not None and user.name == userName:
+                return user.manualUpdateCountback(newCountback)
+            elif userMention is not None and user.mention == userMention:
+                return user.manualUpdateCountback(newCountback)
             
         return "The user is not registered on the server."
 
@@ -236,7 +247,7 @@ class Server:
 
                 self.__logger.info(f"Server: {self.name} - Server data loaded from pickle")
         except Exception as exception:
-            self.__logger.error(f"Server: {self.name} - Server load from pickle failed due to exception: {str(exception)}")
+            self.__logger.exception(f"Server: {self.name} - Server load from pickle failed due to exception: {str(exception)}")
             raise exception
         
     def __saveData(self) -> None:
@@ -258,6 +269,6 @@ class Server:
                 pickle.dump(serverInfo, pickleFile, pickle.HIGHEST_PROTOCOL)
                 self.__logger.info(f"Server: {self.name} - Server data saved to pickle")
         except Exception as exception:
-            self.__logger.error(f"Server: {self.name} - Server save to pickle failed due to exception: {str(exception)}")
+            self.__logger.exception(f"Server: {self.name} - Server save to pickle failed due to exception: {str(exception)}")
             raise exception
 

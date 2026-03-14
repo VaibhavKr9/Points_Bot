@@ -206,6 +206,18 @@ class User:
             self.__points = newPoints
             return "Points updated for " + self.name + " to " + str(self.__points) + "."
         return "Enter valid points input."
+    
+    def manualUpdateCountback(self, newCountback : list[int]) -> str:
+        if len(newCountback) != 3:
+            return "Enter three countback positions."
+        for pos in newCountback:
+            if pos < 0:
+                return "Enter valid countback input."
+        
+        for pos, newCount in enumerate(newCountback, start=1):
+            self.__countback.update(pos, newCount)
+
+        return "Countback updated for " +self.name + " to " + str(self.__countback) + "."
 
     def resetPredictions(self) -> None:
         """
