@@ -92,7 +92,7 @@ class User:
         """
 
         self.gridPrediction.updateFromOrder(QualiPred)
-        msg = "✅ Grid prediction by" + self.name + \
+        msg = "✅ Grid prediction by " + self.name + \
             ": " + str(self.gridPrediction)
         return msg
 
@@ -111,7 +111,7 @@ class User:
         """
 
         self.racePrediction.updateFromOrder(RacePred)
-        msg = "✅ Race prediction by" + self.name + \
+        msg = "✅ Race prediction by " + self.name + \
             ": " + str(self.racePrediction)
         return msg
 

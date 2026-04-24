@@ -27,7 +27,7 @@ async def scheduleBroadcastTask():
                 pointsBotClient.currGrandPrix.qualiTime.strftime("%Y-%m-%d %H:%M:%S"))
 
 async def closeQualiPredictionsBroadcastTask():
-    await pointsBotClient.closePredictions('grid'))
+    await pointsBotClient.closePredictions('grid')
     scheduler.add_job(closeRacePredictionsBroadcastTask, 'date', run_date=pointsBotClient.currGrandPrix.raceTime)
     logger.info(str(pointsBotClient.currGrandPrix) + " Quali predictions closed. Close race predictions task scheduled for " +\
                 pointsBotClient.currGrandPrix.raceTime.strftime("%Y-%m-%d %H:%M:%S"))
@@ -39,6 +39,7 @@ async def closeRacePredictionsBroadcastTask():
                 (pointsBotClient.currGrandPrix.raceTime + timedelta(hours=3)).strftime("%Y-%m-%d %H:%M:%S"))
 
 async def checkGrandPrixResultsTask():
+    now = datetime.now()
     gridResults, raceResults = dataAPI.getCurrentGrandPrixResults()
 
     if gridResults is not None and raceResults is not None:
@@ -54,26 +55,26 @@ async def checkGrandPrixResultsTask():
             logger.info("Next Grand Prix not found, closing championship.")
 
         if result and nextGP is not None:
-            if not pointsBotClient.areAllServersUpdated() and datetime.now() < pointsBotClient.nextGrandPrix.startTime - timedelta(hours=4):
-                scheduler.add_job(checkGrandPrixResultsTask, 'date', run_date=datetime.now() + timedelta(hours=2))
-                logger.info("All servers not updated, rescheduling results check task for " + (datetime.now() + timedelta(hours=2)).strftime("%Y-%m-%d %H:%M:%S"))
+            if not pointsBotClient.areAllServersUpdated() and now < pointsBotClient.nextGrandPrix.startTime - timedelta(hours=4):
+                scheduler.add_job(checkGrandPrixResultsTask, 'date', run_date=now + timedelta(hours=2))
+                logger.info("All servers not updated, rescheduling results check task for " + (now + timedelta(hours=2)).strftime("%Y-%m-%d %H:%M:%S"))
             else:
                 scheduler.add_job(scheduleBroadcastTask, 'date', run_date=pointsBotClient.nextGrandPrix.startTime)
                 logger.info("All servers updated or next Grand Prix starting soon, scheduling schedule broadcast task for " +\
                             pointsBotClient.nextGrandPrix.startTime.strftime("%Y-%m-%d %H:%M:%S"))
         elif result and nextGP is None:
-            if not pointsBotClient.areAllServersUpdated() and datetime.now() < pointsBotClient.currGrandPrix.raceTime + timedelta(weeks=2):
-                scheduler.add_job(checkGrandPrixResultsTask, 'date', run_date=datetime.now() + timedelta(hours=2))
-                logger.info("All servers not updated, rescheduling results check task for " + (datetime.now() + timedelta(hours=2)).strftime("%Y-%m-%d %H:%M:%S"))
+            if not pointsBotClient.areAllServersUpdated() and now < pointsBotClient.currGrandPrix.raceTime + timedelta(weeks=2):
+                scheduler.add_job(checkGrandPrixResultsTask, 'date', run_date=now + timedelta(hours=2))
+                logger.info("All servers not updated, rescheduling results check task for " + (now + timedelta(hours=2)).strftime("%Y-%m-%d %H:%M:%S"))
             else:
-                scheduler.add_job(newSeasonTask, 'date', run_date=datetime(year=datetime.now().year + 1, month=2, day=15))
+                scheduler.add_job(newSeasonTask, 'date', run_date=datetime(year=now.year + 1, month=2, day=15))
                 logger.info("All server championships closed or 2 weeks passed since season ended, scheduling new season task for " +\
-                            datetime(year=datetime.now().year + 1, month=2, day=15).strftime("%Y-%m-%d %H:%M:%S"))
+                            datetime(year=now.year + 1, month=2, day=15).strftime("%Y-%m-%d %H:%M:%S"))
         
     else:
-        scheduler.add_job(checkGrandPrixResultsTask, 'date', run_date=datetime.now() + timedelta(hours=1))
+        scheduler.add_job(checkGrandPrixResultsTask, 'date', run_date=now + timedelta(hours=1))
         logger.info("Latest Grand Prix results not yet updated, rescheduling results check task for " +\
-                    (datetime.now() + timedelta(hours=1)).strftime("%Y-%m-%d %H:%M:%S"))
+                    (now + timedelta(hours=1)).strftime("%Y-%m-%d %H:%M:%S"))
 
 async def newSeasonTask():
     nextGP = dataAPI.getNewSeasonGrandPrix()
@@ -82,12 +83,27 @@ async def newSeasonTask():
         pointsBotClient.updateNextGrandPrix(nextGP, dataAPI.getTotalRounds())
         await pointsBotClient.sendNewSeasonUpdate()
         scheduler.add_job(scheduleBroadcastTask, 'date', run_date=pointsBotClient.nextGrandPrix.startTime)
+        logger.info("New season schedule available, scheduling schedule broadcast task for " +\
+                            pointsBotClient.nextGrandPrix.startTime.strftime("%Y-%m-%d %H:%M:%S"))
     else:
         scheduler.add_job(newSeasonTask, 'date', run_date=datetime.now() + timedelta(weeks=1))
+        logger.info("New season schedule not found, next check scheduled for " +\
+                            (datetime.now() + timedelta(weeks=1)).strftime("%Y-%m-%d %H:%M:%S"))
 
-async def enterSchedulingCycle():
+async def pingUser():
+    userID = int(os.getenv("USER_ID"))
+    if pointsBotClient.is_ready() and userID is not None:
+    	await pointsBotClient.pingUser(userID)
+    else:
+        await asyncio.sleep(5)
+        await pingUser()
+        
+def enterSchedulingCycle():
+    global scheduler
     now = datetime.now()
     logger.info("Starting scheduling cycle...")
+    
+    scheduler.add_job(pingUser, 'date', run_date=now + timedelta(seconds=20))
 
     if now < datetime(year=now.year, month=2, day=15):
         scheduler.add_job(newSeasonTask, 'date', run_date=datetime(year=now.year, month=2, day=15))
@@ -114,7 +130,21 @@ async def enterSchedulingCycle():
                 scheduler.add_job(closeRacePredictionsBroadcastTask, 'date', run_date=nextGP.raceTime)
                 logger.info("Close race predictions broadcast task scheduled for " + nextGP.raceTime.strftime("%Y-%m-%d %H:%M:%S"))
             else:
-                await checkGrandPrixResultsTask()
+                scheduler.add_job(checkGrandPrixResultsTask, 'date', run_date=now + timedelta(seconds=20))
+                logger.info(str(pointsBotClient.currGrandPrix) + " Race started. Results check task scheduled for " +\
+                (now + timedelta(seconds=20)).strftime("%Y-%m-%d %H:%M:%S"))
+
+async def enterAsyncLoop():
+    global scheduler, pointsBotClient
+    botAuthKey = os.getenv("DISCORD_BOT_TOKEN")
+    print("Logging into client...")
+    await pointsBotClient.startClient(botAuthKey, f"{os.getenv("PICKLE_DIR")}/client.pickle", f"{os.getenv("LOG_DIR")}/client.log")
+    print("Starting scheduler...")
+    scheduler.start()
+    while not scheduler.running:
+        pass
+    print("Connecting to socket...")
+    await pointsBotClient.connectClient()
 
 def startBot():
     global dataAPI, pointsBotClient, scheduler, logger
@@ -123,11 +153,10 @@ def startBot():
     logHandler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
     logger.addHandler(logHandler)
 
-    botAuthKey = os.getenv("DISCORD_BOT_TOKEN")
     dataAPI = FastF1Data(True)
-    ret  = asyncio.run(enterSchedulingCycle())
-    scheduler.start()
-    pointsBotClient.startClient(botAuthKey, f"{os.getenv("PICKLE_DIR")}/client.pickle", f"{os.getenv("LOG_DIR")}/client.log")
+    enterSchedulingCycle()
+    asyncio.run(enterAsyncLoop())
+    
 
 
 

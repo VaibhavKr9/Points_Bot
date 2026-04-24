@@ -1,5 +1,6 @@
 import discord
 import logging
+import utils
 from os import path
 import pickle
 from datetime import datetime
@@ -29,18 +30,25 @@ class   DiscordClient(discord.Client):
         self.nextGrandPrix : GrandPrix = GrandPrix()
         self.totalRounds : int = 0
 
-    def startClient(self, authKey : str, pickleFilePath : str, logPath : str = "client.log") -> None:
+    async def startClient(self, authKey : str, pickleFilePath : str, logPath : str = "client.log") -> None:
         try:
             self.__logHandler : logging.Handler = logging.FileHandler(filename=logPath, encoding="utf-8")
             self.__logHandler.formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
             self.__logger.addHandler(self.__logHandler)
             self.__pickleFilePath = pickleFilePath
             self.__logger.info("Starting Discord Client...")
-            self.run(token= authKey, reconnect= True, log_handler= self.__logHandler)
-            self.__logger.debug("discord.Client.run method returned")
-            #await self.wait_until_ready()
+            discord.utils.setup_logging( handler=self.__logHandler, root=False)
+            await self.login(token= authKey)
+            self.__logger.debug("Logged into Discord Client.")
         except Exception as exception:
             print("Error in starting the client: ", exception)
+            
+    async def connectClient(self):
+        try:
+            self.__logger.info("Connecting to websocket...")
+            await self.connect(reconnect=True)
+        except Exception as exception:
+            print("Error in connecting the client: ", exception)
 
     def __saveData(self) -> None:
         if self.__isActive:
@@ -134,9 +142,9 @@ class   DiscordClient(discord.Client):
     async def __adminCommandHandler(self, message : discord.Message):
         if message.guild != None and (message.author.guild_permissions.administrator == True or message.channel.id == self.__guildDict[message.guild.id].adminChannel):
             if message.content.startswith("!change grid") or message.content.startswith("!change race"):
-                predList : list[str] = []
+                predList : list[str] = ['000', '000', '000']
                 userFound : bool = False
-                [com, tag, mention, predList[0], predList[1], predList[2]] = message.content.lower().split(" ")
+                [com, tag, mention, predList[0], predList[1], predList[2]] = message.content.lower().split(maxsplit=6)
                 await message.channel.send(self.__guildDict[message.guild.id].updatePredictions(tag, predList, userMention = mention))
 
             if message.content.startswith("!change points"):
@@ -144,11 +152,11 @@ class   DiscordClient(discord.Client):
                 await message.channel.send(self.__guildDict[message.guild.id].manualUpdatePoints(int(newPoints), userMention = mention))
 
             if message.content.startswith("!change countback"):
-                [com, c, mention, pos1, pos2, pos3] = message.content.lower().split(" ")
+                [com, c, mention, pos1, pos2, pos3] = message.content.lower().split(maxsplit=6)
                 await message.channel.send(self.__guildDict[message.guild.id].manualUpdateCountback([int(pos1), int(pos2), int(pos3)], userMention = mention))
 
             elif message.content.startswith("!add"):
-                [com, mention] = message.content.split(" ")
+                [com, mention] = message.content.split()
                 async for member in message.guild.fetch_members():
                     if member.mention == mention:
                         if self.__guildDict[message.guild.id].newUser(member.id, member.name, member.mention):
@@ -366,6 +374,15 @@ class   DiscordClient(discord.Client):
         if guild.id in self.__guildDict.keys():
             del self.__guildDict[guild.id]
             self.__saveData()
+            
+    async def pingUser(self, userID : int):
+        async for guild in self.fetch_guilds():
+            server = self.get_guild(guild.id)
+            for user in server.members:
+                if user.id == userID:
+                    await user.send("Online now")
+                    return
+
 
 
 
