@@ -1,6 +1,5 @@
 import discord
 import logging
-import utils
 from os import path
 import pickle
 from datetime import datetime

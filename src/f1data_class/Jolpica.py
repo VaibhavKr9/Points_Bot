@@ -2,7 +2,7 @@ import requests
 from datetime import datetime
 from datetime import timedelta
 import enum
-from grand_prix_class.GrandPrix import GrandPrix
+from src.grand_prix_class.GrandPrix import GrandPrix
 
 
 
@@ -144,8 +144,8 @@ if __name__ == "__main__":
     print(racetime)'''
     f1data = JolpicaData()
     #f1data._updateData()
-    f1data._JolpicaData__year = 2025
-    f1data._JolpicaData__round = 3
+    f1data._JolpicaData__year = 2026
+    f1data._JolpicaData__round = 6
     f1data._JolpicaData__isUpdated = True
     currentGPResults = f1data.getCurrentGrandPrixResults()
     print(currentGPResults)

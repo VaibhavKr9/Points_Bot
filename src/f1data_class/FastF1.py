@@ -27,7 +27,10 @@ class FastF1Data:
 
     def __updateData(self):
         self.__year = datetime.now().year
-        calendar = fastf1.get_event_schedule(self.__year)
+        try:
+            calendar = fastf1.get_event_schedule(self.__year)
+        except:
+            return
         now = datetime.now()
         for index, event in calendar.iterrows():
             self.__round = event['RoundNumber']
@@ -133,7 +136,10 @@ class FastF1Data:
     def getTotalRounds(self) -> int:
         if not self.__isUpdated:
             self.__updateData()
-        calendar = fastf1.get_event_schedule(self.__year)
+        try:
+            calendar = fastf1.get_event_schedule(self.__year)
+        except:
+            return 0
         return calendar.tail(1)['RoundNumber'].values[0]
 
 if __name__ == "__main__":

@@ -17,6 +17,45 @@ class OverrideState(Enum):
     CLOSED_BY_ADMIN = 3
 
 class Server:
+    '''
+    Description
+    -----------
+    Class representing a server, storing all relevant data and methods to execute points and user related operations.
+
+    Attributes
+    ----------
+    guildID: int
+        The server's Discord guild ID.
+
+    name: str
+        The name of the server.
+
+    adminChannel: int
+        The Discord channel ID for admin commands and updates.
+
+    updatesChannel: int
+        The Discord channel ID for schedule and results updates.
+
+    adminOverrideFlag: OverrideState
+        Enum storing the state of whether bot operations have been overridden by admin.
+
+    passivePredictionActive: bool
+        Flag indicating whether old predictions are carried over to next Grand Prix.
+
+    Methods
+    -------
+    newUser(id, name, mention) -> bool
+        Adds a new user to the server.
+
+    removeUser(name, mention) -> bool
+        Removes a user from the server.
+
+    updatePredictions(tag, predList, userId, userName, userMention) -> str
+        Updates the predictions with the given tag for either the given user ID, name or mention.
+
+    updateStandings(gridResult, raceResult) -> bool
+        Updates the points and position of all users as per given results.
+    '''
     def __init__(self, name : str = "", guildID : int = 0):
         self.__logger = logging.getLogger(str(guildID))
         self.__fileHandler = logging.FileHandler(f"{os.getenv("LOG_DIR")}/{guildID}.log")

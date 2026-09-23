@@ -19,17 +19,17 @@ if __name__ == "__main__":
 
     if not os.path.isdir(f"{HOME_DIR}/pickles"):
         os.makedirs(f"{HOME_DIR}/pickles")
-    os.putenv("PICKLE_DIR", f"{HOME_DIR}/pickles")
+    os.environ["PICKLE_DIR"] = f"{HOME_DIR}/pickles"
 
     if not os.path.isdir(f"{HOME_DIR}/logs"):
         os.makedirs(f"{HOME_DIR}/logs")
-    os.putenv("LOG_DIR", f"{HOME_DIR}/logs")
+    os.environ["LOG_DIR"] = f"{HOME_DIR}/logs"
 
     if not os.path.isdir(f"{HOME_DIR}/cache"):
         os.makedirs(f"{HOME_DIR}/cache")
-    os.putenv("CACHE_DIR", f"{HOME_DIR}/cache")
+    os.environ["CACHE_DIR"] = f"{HOME_DIR}/cache"
 
-    os.putenv("HOME_DIR", HOME_DIR)
+    os.environ["HOME_DIR"] = HOME_DIR
 
     run.startBot()
 
